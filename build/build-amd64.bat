@@ -76,7 +76,7 @@ echo Starting amd64 build... >> %LOG_FILE%
 docker buildx build --no-cache --platform %PLATFORM% ^
     -f src/Dockerfile.amd64 ^
     -t doc-converter:amd64 ^
-
+    --load . >> %LOG_FILE% 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     echo ERROR: Build failed. Check %LOG_FILE% for details.
     echo ERROR: Build failed. Check %LOG_FILE% for details. >> %LOG_FILE%
