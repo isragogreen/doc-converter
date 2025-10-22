@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "../../workflow_n8n"
+		},
+		{
+			"path": "../../workflow_n8n/qwen"
+		}
+	],
+	"settings": {}
+}
