@@ -10,9 +10,12 @@ import psutil
 GITHUB_REPO_BASE = "https://github.com/isragogreen/doc-converter.git"  # Ваш репо
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
 if GITHUB_TOKEN:
-    GITHUB_REPO = f"https://{GITHUB_TOKEN}@github.com/isragogreen/doc-converter.git"
+GITHUB_REPO_BASE = "git@github.com:isragogreen/doc-converter.git"  # SSH для вашего репо
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')  # Игнорируем, если пусто
+if GITHUB_TOKEN:
+    GITHUB_REPO = f"https://{GITHUB_TOKEN}@github.com:isragogreen/doc-converter.git"  # Fallback HTTPS, но не используем
 else:
-    GITHUB_REPO = GITHUB_REPO_BASE
+    GITHUB_REPO = GITHUB_REPO_BASE  # SSH по умолчанию
 GITHUB_FOLDER = "docs"  # Локальная папка с доками
 LOCAL_CLONE_DIR = "./github_clone"
 OUTPUT_DIR = Path(LOCAL_CLONE_DIR) / "output"
