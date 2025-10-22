@@ -12,13 +12,14 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir \
+RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir --break-system-packages \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip3 install --no-cache-dir --break-system-packages \
     gitpython \
     psutil \
     marker-pdf[full]
-
-RUN pip3 install --no-cache-dir \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN ollama pull qwen:7b
