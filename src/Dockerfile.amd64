@@ -2,7 +2,7 @@
 FROM --platform=$BUILDPLATFORM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y -q --no-install-recommends \
     python3.10 \
     python3-pip \
     git \
@@ -12,14 +12,14 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir --break-system-packages --upgrade pip
 RUN pip3 install --no-cache-dir --break-system-packages \
     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 RUN pip3 install --no-cache-dir --break-system-packages \
     gitpython \
     psutil \
-    marker-pdf[full]
+    marker-pdf
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN ollama pull qwen:7b
