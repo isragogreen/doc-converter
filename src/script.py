@@ -18,7 +18,7 @@ else:
 GITHUB_FOLDER = "docs"  # Папка с исходными файлами
 LOCAL_CLONE_DIR = "./github_clone"
 OUTPUT_DIR = Path(LOCAL_CLONE_DIR) / "output"
-SUPPORTED_EXTS = {'.pdf', '.html', '.docx', '.md', '.txt', '.jpg', '.jpeg', '.png'}  # Добавили MD/TXT/IMG
+SUPPORTED_EXTS = {'.pdf', '.html', '.docx', '.md', '.txt', '.jpg', '.jpeg', '.png', 'svg','epub'}  # Добавили MD/TXT/IMG
 
 # RAM-оптимизация
 ram_gb = psutil.virtual_memory().total / (1024**3)
