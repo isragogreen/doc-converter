@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip3 install --no-cache-dir --upgrade pip uv
 RUN pip install -U torch --index-url https://download.pytorch.org/whl/cpu
-RUN pip install -U gitpython psutil shutil ollama
+RUN pip install -U gitpython psutil  ollama
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
