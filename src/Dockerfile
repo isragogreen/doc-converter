@@ -1,21 +1,21 @@
-﻿# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1
 FROM --platform=$BUILDPLATFORM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y \\
-    python3.11 \\
-    python3-pip \\
-    git \\
-    curl \\
-    build-essential \\
-    libgl1-mesa-glx \\
-    libglib2.0-0 \\
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3-pip \
+    git \
+    curl \
+    build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir \\
-    gitpython \\
-    psutil \\
-    marker-pdf[full] \\
+RUN pip3 install --no-cache-dir \
+    gitpython \
+    psutil \
+    marker-pdf[full] \
     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
