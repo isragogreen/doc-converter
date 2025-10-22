@@ -19,7 +19,7 @@ RUN pip3 install --no-cache-dir \
 RUN pip3 install --no-cache-dir gitpython psutil
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
-RUN ollama pull qwen:7b
+RUN ollama serve & sleep 20 && ollama pull qwen:7b
 
 WORKDIR /app
 COPY src/script.py .
