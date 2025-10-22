@@ -1,79 +1,55 @@
 @echo off
+REM Установка кодировки для поддержки кириллицы (UTF-8)
+chcp 65001 >nul
+
 REM Платформа: amd64 (Windows/Ubuntu 20.04)
-set PLATFORM=linux/amd64
+SET PLATFORM=linux/amd64
+SET LOG_FILE=build.log
+
+REM Проверка Docker и Buildx
+docker --version >nul 2>&1 || (
+    echo ОШИБКА: Docker не установлен или не запущен. Установите Docker Desktop и перезапустите. >> %LOG_FILE%
+    echo ОШИБКА: Docker не установлен или не запущен. Установите Docker Desktop и перезапустите.
+    exit /b 1
+)
+docker buildx version >nul 2>&1 || (
+    echo ОШИБКА: Docker Buildx не установлен. Установите plugin buildx. >> %LOG_FILE%
+    echo ОШИБКА: Docker Buildx не установлен. Установите plugin buildx.
+    exit /b 1
+)
 
 REM Очистка
-for /f "tokens=1" %%i in ('docker ps --format "{{.Names}}" ^| findstr buildx_buildkit') do (
-    echo Stopping container %%i
-    docker stop %%i >nul 2>&1
+echo Очистка старых контейнеров и builder... >> %LOG_FILE%
+for /f "tokens=*" %%i in ('docker ps -a -q --filter "name=buildx_buildkit"') do (
+    echo Останавливаю контейнер %%i >> %LOG_FILE%
+    docker stop %%i >> %LOG_FILE% 2>&1
+    docker rm %%i >> %LOG_FILE% 2>&1
 )
-docker buildx rm multiarch >nul 2>&1
+docker buildx rm multiarch >> %LOG_FILE% 2>&1
 
-REM Builder
-docker buildx create --use --name multiarch --driver docker-container
-docker buildx inspect --bootstrap multiarch
+REM Создание builder
+echo Создание Buildx builder... >> %LOG_FILE%
+docker buildx create --use --name multiarch --driver docker-container >> %LOG_FILE% 2>&1
+docker buildx inspect --bootstrap multiarch >> %LOG_FILE% 2>&1
 
 REM Сборка amd64
+echo Запуск сборки amd64... >> %LOG_FILE%
 docker buildx build --platform %PLATFORM% ^
     -f src/Dockerfile.amd64 ^
     -t doc-converter:amd64 ^
-    --load .
+    --load . >> %LOG_FILE% 2>&1
 
+IF %ERRORLEVEL% NEQ 0 (
+    echo ОШИБКА: Сборка не удалась. Проверьте %LOG_FILE% для деталей. >> %LOG_FILE%
+    echo ОШИБКА: Сборка не удалась. Проверьте %LOG_FILE% для деталей.
+    exit /b %ERRORLEVEL%
+)
+
+echo Сборка amd64 завершена. >> %LOG_FILE%
 echo Сборка amd64 завершена.
 docker images | findstr doc-converter
-pause
-"@ | Out-File -FilePath "build\build-amd64.bat" -Encoding ascii
 
-# build-arm64.bat (cross-build arm64 на Windows, для RPi)
-Remove-Item "build\build-arm64.bat" -Force
-@"
-@echo off
-REM Платформа: arm64 (Debian Bookworm/RPi)
-set PLATFORM=linux/arm64
-
-REM Очистка
-for /f "tokens=1" %%i in ('docker ps --format "{{.Names}}" ^| findstr buildx_buildkit') do (
-    echo Stopping container %%i
-    docker stop %%i >nul 2>&1
+REM Пауза, если NO_PAUSE не установлена
+IF NOT DEFINED NO_PAUSE (
+    pause
 )
-docker buildx rm multiarch >nul 2>&1
-
-REM Builder
-docker buildx create --use --name multiarch --driver docker-container
-docker buildx inspect --bootstrap multiarch
-
-REM Сборка arm64
-docker buildx build --platform %PLATFORM% ^
-    -f src/Dockerfile.arm64 ^
-    -t doc-converter:arm64 ^
-    --load .
-
-echo Сборка arm64 завершена.
-docker images | findstr doc-converter
-pause
-"@ | Out-File -FilePath "build\build-arm64.bat" -Encoding ascii
-
-# build-arm64.sh (native для RPi/Linux)
-Remove-Item "build\build-arm64.sh" -Force
-@'
-#!/bin/bash
-set -e
-
-PLATFORM="linux/arm64"
-
-# Очистка
-docker stop $(docker ps --format "{{.Names}}" | grep buildx_buildkit) 2>/dev/null || true
-docker buildx rm multiarch 2>/dev/null || true
-
-# Builder
-docker buildx create --use --name multiarch --driver docker-container
-docker buildx inspect --bootstrap multiarch
-
-# Сборка arm64
-docker buildx build --platform $PLATFORM \
-    -f src/Dockerfile.arm64 \
-    -t doc-converter:arm64 \
-    --load .
-
-echo "Сборка arm64 завершена."
-docker images | grep doc-converter
