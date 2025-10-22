@@ -14,11 +14,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng16-16 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir --upgrade pip uv
-RUN pip install -U torch --index-url https://download.pytorch.org/whl/cpu
-RUN pip install -U gitpython psutil  ollama
+RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir torch==2.3.0+cpu torchvision==0.18.0+cpu --index-url https://download.pytorch.org/whl/cpu
+RUN pip3 install --no-cache-dir gitpython psutil ollama "mineru[core]"
 
-RUN curl -fsSL https://ollama.com/install.sh | sh
+
+RUN curl -fsSL https://ollama.com/install.sh | sh   
+RUN ollama pull phi3:3.8b-mini-4k-instruct-q4_K_M && pkill ollama
+RUN pip3 cache purge && apt-get clean && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* 
 
 WORKDIR /app
 COPY src/script.py .
