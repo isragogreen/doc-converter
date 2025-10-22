@@ -18,17 +18,11 @@ RUN pip3 install --no-cache-dir \
 
 RUN pip3 install --no-cache-dir gitpython psutil
 
-# Marker-pdf ???????? ??? ???????? ?????
-# RUN pip3 install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org git+https://github.com/VikParuchuri/marker.git
-
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN ollama pull qwen:7b
 
 WORKDIR /app
 COPY src/script.py .
-
-# load_all_models ???????? ??? marker
-# RUN python3 -c "from marker.models import load_all_models; load_all_models()"
 
 RUN git config --global user.name "Doc Converter" && git config --global user.email "converter@example.com"
 
