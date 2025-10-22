@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM ubuntu:20.04
+FROM --platform=$BUILDPLATFORM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
@@ -12,25 +12,14 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip ????????
 RUN pip3 install --no-cache-dir --upgrade pip
-
-# Torch ????????
 RUN pip3 install --no-cache-dir \
-    torch --index-url https://download.pytorch.org/whl/cpu
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-RUN pip3 install --no-cache-dir \
-    torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN pip3 install --no-cache-dir gitpython psutil
 
-RUN pip3 install --no-cache-dir \
-    torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# ????????? ?????? ????????
-RUN pip3 install --no-cache-dir gitpython
-
-RUN pip3 install --no-cache-dir psutil
-
-RUN pip3 install --no-cache-dir marker-pdf
+# Marker-pdf ???????? ??? ???????? ?????
+# RUN pip3 install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org git+https://github.com/VikParuchuri/marker.git
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN ollama pull qwen:7b
@@ -38,7 +27,8 @@ RUN ollama pull qwen:7b
 WORKDIR /app
 COPY src/script.py .
 
-RUN python3 -c "from marker.models import load_all_models; load_all_models()"
+# load_all_models ???????? ??? marker
+# RUN python3 -c "from marker.models import load_all_models; load_all_models()"
 
 RUN git config --global user.name "Doc Converter" && git config --global user.email "converter@example.com"
 
