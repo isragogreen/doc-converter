@@ -1,16 +1,27 @@
-﻿@echo off
-REM Платформы: amd64, arm64
+@echo off
+REM ?????????: amd64, arm64
 set PLATFORMS=linux/amd64,linux/arm64
 
-REM Создать buildx builder если нет
-docker buildx create --use --name multiarch || exit /b 0
+REM ?????????? buildx_buildkit* ???? running
+for /f "tokens=1" %%i in ('docker ps --format "{{.Names}}" ^| findstr buildx_buildkit') do (
+    echo Stopping container %%i
+    docker stop %%i >nul 2>&1
+)
 
-REM Сборка
+REM ??????? ?????? builder ???? ????
+docker buildx rm multiarch >nul 2>&1
+
+REM ??????? ?????
+docker buildx create --use --name multiarch --driver docker-container
+docker buildx inspect --bootstrap multiarch
+
+REM ??????
 docker buildx build --platform %PLATFORMS% ^
     --build-arg BUILDPLATFORM=linux/amd64 ^
+    -f src/Dockerfile ^
     -t doc-converter:latest ^
     --load .
 
-echo Сборка завершена.
+echo ?????? ?????????.
 docker images | findstr doc-converter
 pause

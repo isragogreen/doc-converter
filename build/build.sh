@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 set -e
 
 # Платформы: amd64 (Windows/Ubuntu), arm64 (Debian Bookworm/RPi)
