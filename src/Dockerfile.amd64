@@ -20,7 +20,7 @@ RUN pip3 install --no-cache-dir gitpython psutil ollama "mineru[core]"
 
 
 RUN curl -fsSL https://ollama.com/install.sh | sh   
-RUN ollama pull phi3:3.8b-mini-4k-instruct-q4_K_M && pkill ollama
+#RUN ollama pull phi3:3.8b-mini-4k-instruct-q4_K_M && pkill ollama
 RUN pip3 cache purge && apt-get clean && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* 
 
 WORKDIR /app
