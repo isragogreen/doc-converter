@@ -9,7 +9,7 @@ chcp 65001 >nul
 REM Clear previous log file
 echo. > %LOG_FILE%
 
-REM Check Docker and Buildx
+REM Check Docker and Build
 echo Checking Docker installation...
 echo Checking Docker installation... >> %LOG_FILE%
 docker --version >nul 2>&1 || (
@@ -20,20 +20,20 @@ docker --version >nul 2>&1 || (
 echo Docker found.
 echo Docker found. >> %LOG_FILE%
 
-echo Checking Docker Buildx...
-echo Checking Docker Buildx... >> %LOG_FILE%
-docker buildx version >nul 2>&1 || (
-    echo ERROR: Docker Buildx is not installed. Install the buildx plugin.
-    echo ERROR: Docker Buildx is not installed. Install the buildx plugin. >> %LOG_FILE%
+echo Checking Docker Build...
+echo Checking Docker Build... >> %LOG_FILE%
+docker build version >nul 2>&1 || (
+    echo ERROR: Docker Build is not installed. Install the build plugin.
+    echo ERROR: Docker Build is not installed. Install the build plugin. >> %LOG_FILE%
     exit /b 1
 )
-echo Buildx found.
-echo Buildx found. >> %LOG_FILE%
+echo Build found.
+echo Build found. >> %LOG_FILE%
 
 REM Cleanup
 echo Cleaning up old containers and builder...
 echo Cleaning up old containers and builder... >> %LOG_FILE%
-for /f "tokens=*" %%i in ('docker ps -a -q --filter "name=buildx_buildkit"') do (
+for /f "tokens=*" %%i in ('docker ps -a -q --filter "name=build_buildkit"') do (
     echo Stopping container %%i...
     echo Stopping container %%i... >> %LOG_FILE%
     docker stop %%i >> %LOG_FILE% 2>&1
@@ -43,25 +43,25 @@ for /f "tokens=*" %%i in ('docker ps -a -q --filter "name=buildx_buildkit"') do 
 )
 echo Removing old multiarch builder...
 echo Removing old multiarch builder... >> %LOG_FILE%
-docker buildx rm multiarch >> %LOG_FILE% 2>&1
+docker build rm multiarch >> %LOG_FILE% 2>&1
 echo Cleanup completed.
 echo Cleanup completed. >> %LOG_FILE%
 
 REM Create builder
-echo Creating Buildx builder...
-echo Creating Buildx builder... >> %LOG_FILE%
-docker buildx create --use --name multiarch --driver docker-container >> %LOG_FILE% 2>&1
+echo Creating Build builder...
+echo Creating Build builder... >> %LOG_FILE%
+docker build create --use --name multiarch --driver docker-container >> %LOG_FILE% 2>&1
 IF %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to create Buildx builder. Check %LOG_FILE% for details.
-    echo ERROR: Failed to create Buildx builder. Check %LOG_FILE% for details. >> %LOG_FILE%
+    echo ERROR: Failed to create Build builder. Check %LOG_FILE% for details.
+    echo ERROR: Failed to create Build builder. Check %LOG_FILE% for details. >> %LOG_FILE%
     exit /b %ERRORLEVEL%
 )
-echo Buildx builder created.
-echo Buildx builder created. >> %LOG_FILE%
+echo Build builder created.
+echo Build builder created. >> %LOG_FILE%
 
 echo Bootstrapping builder...
 echo Bootstrapping builder... >> %LOG_FILE%
-docker buildx inspect --bootstrap multiarch >> %LOG_FILE% 2>&1
+docker build inspect --bootstrap multiarch >> %LOG_FILE% 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     echo ERROR: Failed to bootstrap builder. Check %LOG_FILE% for details.
     echo ERROR: Failed to bootstrap builder. Check %LOG_FILE% for details. >> %LOG_FILE%
@@ -73,7 +73,7 @@ echo Builder bootstrapped. >> %LOG_FILE%
 REM Build amd64
 echo Starting amd64 build...
 echo Starting amd64 build... >> %LOG_FILE%
-docker buildx build --no-cache --platform %PLATFORM% ^
+docker build build --no-cache --platform %PLATFORM% ^
     -f src/Dockerfile.amd64 ^
     -t doc-converter:amd64 ^
     --load . >> %LOG_FILE% 2>&1

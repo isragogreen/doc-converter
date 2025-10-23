@@ -2,8 +2,6 @@
 import subprocess
 from pathlib import Path
 import git
-from marker.convert import convert_single
-from marker.models import load_all_models
 import psutil
 import shutil  # Для копирования MD/TXT
 
@@ -18,15 +16,11 @@ else:
 GITHUB_FOLDER = "docs"  # Папка с исходными файлами
 LOCAL_CLONE_DIR = "./github_clone"
 OUTPUT_DIR = Path(LOCAL_CLONE_DIR) / "output"
-SUPPORTED_EXTS = {'.pdf', '.html', '.docx', '.md', '.txt', '.jpg', '.jpeg', '.png', 'svg','epub'}  # Добавили MD/TXT/IMG
+SUPPORTED_EXTS = {'.pdf', '.html', '.docx', '.md', '.txt', '.jpg', '.jpeg', '.png', '.svg', '.epub'}  # Убрал 'svg' если не поддерживается MinerU
 
-# RAM-оптимизация
+# RAM-оптимизация (MinerU лёгкий для CPU, но оставил для совместимости)
 ram_gb = psutil.virtual_memory().total / (1024**3)
-BATCH_MULTIPLIER = 1 if ram_gb < 6 else 2
-LLM_MODEL = 'qwen'  # Для ru/en/de/zh
-
-# Загрузка моделей marker (один раз, CPU)
-load_all_models()
+# BATCH_MULTIPLIER и LLM_MODEL не нужны для MinerU CLI
 
 def run_git_cmd(cmd, cwd=LOCAL_CLONE_DIR):
     """Запуск git команды с обработкой ошибок."""
@@ -62,7 +56,7 @@ def commit_and_push(md_path: Path):
     print(f"Закоммичено и запушено: {md_path}")
 
 def process_file(input_path: Path, output_path: Path):
-    """Конвертирует или копирует файл в MD, если нужно."""
+    """Конвертирует или копирует файл в MD с MinerU CLI."""
     input_time = get_file_commit_time(input_path)
     if output_path.exists():
         output_time = get_file_commit_time(output_path)
@@ -71,7 +65,7 @@ def process_file(input_path: Path, output_path: Path):
             return
 
     ext = input_path.suffix.lower()
-    print(f"Обрабатываю {input_path.name}... (RAM: {ram_gb:.1f}GB, batch: {BATCH_MULTIPLIER})")
+    print(f"Обрабатываю {input_path.name}... (RAM: {ram_gb:.1f}GB)")
 
     try:
         if ext in {'.md', '.txt'}:
@@ -79,28 +73,16 @@ def process_file(input_path: Path, output_path: Path):
             shutil.copy2(input_path, output_path)
             print(f"Скопировано (MD/TXT): {output_path}")
         else:
-            # Конвертируем (PDF/HTML/DOCX/IMG)
-            full_text, images, out_meta = convert_single(
-                str(input_path),
-                model_lst=None,
-                batch_multiplier=BATCH_MULTIPLIER,
-                use_llm=True,
-                llm_service='ollama',
-                llm_model=LLM_MODEL
-            )
-            md_content = full_text  # Markdown с LaTeX/OCR
-
-            # Сохранить изображения (если есть)
-            img_dir = output_path.parent / "images"
-            os.makedirs(img_dir, exist_ok=True)
-            for img in images:
-                img_path = img_dir / img.filename
-                img.save(img_path)
-
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(md_content)
-
-            print(f"Конвертировано в MD: {output_path}")
+            # Конвертируем с MinerU CLI (для PDF и других)
+            output_dir = output_path.parent / output_path.stem  # MinerU создаёт папку с MD и images
+            os.makedirs(output_dir, exist_ok=True)
+            subprocess.run(['mineru', '-p', str(input_path), '-o', str(output_dir)], check=True)
+            md_file = output_dir / f"{input_path.stem}.md"  # Предполагаемый путь MD от MinerU
+            if md_file.exists():
+                shutil.move(md_file, output_path)  # Переместить MD в output
+                print(f"Конвертировано в MD с MinerU: {output_path}")
+            else:
+                raise RuntimeError("MinerU не создал MD файл")
 
         commit_and_push(output_path)
     except Exception as e:

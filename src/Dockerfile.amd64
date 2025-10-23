@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Установка базовых пакетов (минимальный набор)
+# Базовые пакеты (одним слоем)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
     python3-pip \
@@ -16,24 +16,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng16-16 \
     && rm -rf /var/lib/apt/lists/*
 
-# Обновление pip и установка Python-зависимостей (одним слоем)
-RUN pip3 install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir \
+# Обновление pip
+RUN pip3 install --no-cache-dir --upgrade pip
+
+# Torch отдельно (большой, чтобы кэшировать)
+RUN pip3 install --no-cache-dir \
     torch==2.3.0+cpu \
     torchvision==0.18.0+cpu \
-    --index-url https://download.pytorch.org/whl/cpu && \
-    pip3 install --no-cache-dir \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Базовые зависимости (gitpython, psutil, ollama)
+RUN pip3 install --no-cache-dir \
     gitpython \
     psutil \
-    ollama \
-    "mineru[core]"
+    ollama
 
-# Установка Ollama БЕЗ запуска сервера (быстро, ~10 сек)
+# Ollama binary (быстро)
 RUN curl -L https://github.com/ollama/ollama/releases/download/v0.3.14/ollama-linux-amd64 \
     -o /usr/local/bin/ollama && \
     chmod +x /usr/local/bin/ollama
 
-# Очистка кэша (одним слоем)
+# Очистка
 RUN pip3 cache purge && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*
